@@ -1,0 +1,6 @@
+# Ignore credentials file containing actual secret keys
+config.js
+
+# OS files
+.DS_Store
+Thumbs.db
