@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduTrack | Student Management System</title>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- Inline script to set theme early to prevent flash of light theme -->
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
+</head>
+<body>
+
+  <!-- ====================================================================
+       1. AUTH VIEWS (Login / Signup / Forgot Password)
+       ==================================================================== -->
+  <div id="auth-container" class="auth-wrapper">
+    <!-- Login Card -->
+    <div id="login-view" class="auth-card glass-panel">
+      <div class="auth-brand">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <h2>Welcome to EduTrack</h2>
+        <p>Login to manage student records</p>
+      </div>
+      <form id="login-form" novalidate>
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <label for="login-email">Email Address</label>
+          <input type="email" id="login-email" class="form-control" placeholder="name@school.com" required>
+          <div class="error-message" id="login-email-error"></div>
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label for="login-password">Password</label>
+            <a href="#" id="go-forgot" style="font-size: 0.8rem; color: var(--primary); text-decoration: none;">Forgot Password?</a>
+          </div>
+          <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+          <div class="error-message" id="login-password-error"></div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+          <span>Login</span> <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        </button>
+      </form>
+      <div class="auth-footer">
+        Don't have an account? <a href="#" id="go-signup">Sign Up</a>
+      </div>
+    </div>
+
+    <!-- Signup Card -->
+    <div id="signup-view" class="auth-card glass-panel" style="display: none;">
+      <div class="auth-brand">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <h2>Create Account</h2>
+        <p>Start managing your students today</p>
+      </div>
+      <form id="signup-form" novalidate>
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <label for="signup-name">Full Name</label>
+          <input type="text" id="signup-name" class="form-control" placeholder="John Doe" required>
+          <div class="error-message" id="signup-name-error"></div>
+        </div>
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <label for="signup-email">Email Address</label>
+          <input type="email" id="signup-email" class="form-control" placeholder="name@school.com" required>
+          <div class="error-message" id="signup-email-error"></div>
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label for="signup-password">Password (min 6 characters)</label>
+          <input type="password" id="signup-password" class="form-control" placeholder="••••••••" required>
+          <div class="error-message" id="signup-password-error"></div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+          <span>Sign Up</span> <i class="fa-solid fa-user-plus"></i>
+        </button>
+      </form>
+      <div class="auth-footer">
+        Already have an account? <a href="#" id="go-login">Login</a>
+      </div>
+    </div>
+
+    <!-- Forgot Password Card -->
+    <div id="forgot-view" class="auth-card glass-panel" style="display: none;">
+      <div class="auth-brand">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <h2>Reset Password</h2>
+        <p>We will email you a password reset link</p>
+      </div>
+      <form id="forgot-form" novalidate>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label for="forgot-email">Email Address</label>
+          <input type="email" id="forgot-email" class="form-control" placeholder="name@school.com" required>
+          <div class="error-message" id="forgot-email-error"></div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+          <span>Send Link</span> <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </form>
+      <div class="auth-footer">
+        Back to <a href="#" id="forgot-back-login">Login</a>
+      </div>
+    </div>
+
+    <!-- Update Password Card (Shown on returning from reset link) -->
+    <div id="reset-password-view" class="auth-card glass-panel" style="display: none;">
+      <div class="auth-brand">
+        <i class="fa-solid fa-key"></i>
+        <h2>Set New Password</h2>
+        <p>Enter your new password below</p>
+      </div>
+      <form id="reset-password-form" novalidate>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label for="reset-password-input">New Password</label>
+          <input type="password" id="reset-password-input" class="form-control" placeholder="••••••••" required>
+          <div class="error-message" id="reset-password-error"></div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+          <span>Update Password</span> <i class="fa-solid fa-check"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       2. MAIN APP VIEW
+       ==================================================================== -->
+  <div id="app-container" style="display: none; width: 100%;">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span class="link-text">EduTrack</span>
+      </div>
+      
+      <!-- Mobile Close Trigger -->
+      <button class="mobile-hamburger" id="mobile-sidebar-close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <ul class="sidebar-menu">
+        <li class="sidebar-item active" data-page="dashboard">
+          <a href="#" class="sidebar-link">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span class="link-text">Dashboard</span>
+          </a>
+        </li>
+        <li class="sidebar-item" data-page="students">
+          <a href="#" class="sidebar-link">
+            <i class="fa-solid fa-user-graduate"></i>
+            <span class="link-text">Students</span>
+          </a>
+        </li>
+        <li class="sidebar-item" data-page="add-student">
+          <a href="#" class="sidebar-link">
+            <i class="fa-solid fa-user-plus"></i>
+            <span class="link-text">Add Student</span>
+          </a>
+        </li>
+        <li class="sidebar-item" data-page="settings">
+          <a href="#" class="sidebar-link">
+            <i class="fa-solid fa-sliders"></i>
+            <span class="link-text">Settings & Profile</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="user-avatar" id="sidebar-user-avatar">?</div>
+        <div class="user-details">
+          <div class="user-name" id="sidebar-user-name">Loading...</div>
+          <div class="user-email" id="sidebar-user-email">...</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+      
+      <!-- Header -->
+      <header>
+        <div class="header-left">
+          <button class="toggle-sidebar-btn" id="toggle-sidebar">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <!-- Mobile Sidebar Open -->
+          <button class="toggle-sidebar-btn" id="mobile-sidebar-open" style="display: none;">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          
+          <nav class="breadcrumb-nav" id="breadcrumb">
+            Dashboard
+          </nav>
+        </div>
+
+        <div class="header-right">
+          <!-- Light/Dark Mode Switch -->
+          <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+
+          <!-- User Profile Dropdown -->
+          <div class="profile-dropdown-container">
+            <button class="profile-menu-trigger" id="profile-menu-trigger">
+              <div class="user-avatar" id="header-user-avatar" style="width: 34px; height: 34px;">U</div>
+              <i class="fa-solid fa-chevron-down" style="font-size: 0.8rem; color: var(--text-secondary);"></i>
+            </button>
+            <div class="profile-dropdown" id="profile-dropdown">
+              <div class="dropdown-header">
+                <strong id="dropdown-user-name">User</strong>
+                <div style="font-size: 0.75rem; color: var(--text-secondary);" id="dropdown-user-email">user@school.com</div>
+              </div>
+              <button class="dropdown-link" data-page-link="settings">
+                <i class="fa-solid fa-user"></i> Profile Details
+              </button>
+              <button class="dropdown-link" data-page-link="settings">
+                <i class="fa-solid fa-gear"></i> App Settings
+              </button>
+              <button class="dropdown-link logout-btn" id="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Scrollable Container -->
+      <main class="content-container">
+
+        <!-- ==========================================
+             2.1 DASHBOARD VIEW
+             ========================================== -->
+        <div id="page-dashboard" class="page-view active">
+          <div class="page-header">
+            <div class="page-title">
+              <h1>Dashboard Overview</h1>
+              <p>Welcome back! Here is a summary of the student database statistics.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-primary" id="dash-quick-add">
+                <i class="fa-solid fa-plus"></i> Quick Add Student
+              </button>
+            </div>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="stats-grid" id="dashboard-stats-grid">
+            <div class="stat-card glass-panel">
+              <div class="stat-icon blue"><i class="fa-solid fa-user-graduate"></i></div>
+              <div class="stat-info">
+                <span class="stat-value" id="stat-total-students">0</span>
+                <span class="stat-label">Total Students</span>
+              </div>
+            </div>
+            <div class="stat-card glass-panel">
+              <div class="stat-icon purple"><i class="fa-solid fa-building-columns"></i></div>
+              <div class="stat-info">
+                <span class="stat-value" id="stat-total-depts">0</span>
+                <span class="stat-label">Departments</span>
+              </div>
+            </div>
+            <div class="stat-card glass-panel">
+              <div class="stat-icon green"><i class="fa-solid fa-calendar-plus"></i></div>
+              <div class="stat-info">
+                <span class="stat-value" id="stat-recent-added">0</span>
+                <span class="stat-label">Added This Term</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dual Section Layout -->
+          <div class="dashboard-layout">
+            <!-- Left Side: Recently Added -->
+            <div class="glass-panel" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="font-size: 1.2rem; font-weight: 600;">Recently Added Students</h2>
+                <button class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" id="dash-view-all">View All</button>
+              </div>
+              <div class="table-container" style="border: none;">
+                <table style="width: 100%;">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Department</th>
+                      <th>Year</th>
+                      <th>Date Added</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dashboard-recent-table-body">
+                    <!-- Dynamic rendering -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Right Side: Department breakdown -->
+            <div class="glass-panel" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;">
+              <h2 style="font-size: 1.2rem; font-weight: 600;">Department Distribution</h2>
+              <div id="dept-distribution-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                <!-- Dynamic progress bars -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             2.2 STUDENTS LIST VIEW
+             ========================================== -->
+        <div id="page-students" class="page-view">
+          <div class="page-header">
+            <div class="page-title">
+              <h1>Students Directory</h1>
+              <p>Search, filter, view, and manage student enrollments.</p>
+            </div>
+            <div class="page-actions" style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-secondary" id="bulk-delete-btn" disabled>
+                <i class="fa-solid fa-trash-can"></i> Bulk Delete (<span id="bulk-select-count">0</span>)
+              </button>
+              <button class="btn btn-primary" id="list-add-student">
+                <i class="fa-solid fa-plus"></i> Add New Student
+              </button>
+            </div>
+          </div>
+
+          <!-- Table Panel -->
+          <div class="glass-panel table-card">
+            
+            <!-- Toolbar -->
+            <div class="table-toolbar">
+              <div class="toolbar-left">
+                <div class="search-input-wrapper">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input type="text" id="students-search" class="form-control" placeholder="Search by name, email, phone... (Ctrl+F)">
+                </div>
+                <select id="filter-dept" class="form-control" style="min-width: 160px;">
+                  <option value="">All Departments</option>
+                  <option value="Computer Science">Computer Science</option>
+                  <option value="Information Technology">Information Technology</option>
+                  <option value="Electrical Engineering">Electrical Engineering</option>
+                  <option value="Mechanical Engineering">Mechanical Engineering</option>
+                  <option value="Civil Engineering">Civil Engineering</option>
+                  <option value="Business Administration">Business Administration</option>
+                </select>
+              </div>
+              
+              <div class="toolbar-right">
+                <select id="sort-by" class="form-control">
+                  <option value="name">Sort by Name</option>
+                  <option value="created_at">Sort by Date Added</option>
+                </select>
+                <select id="sort-order" class="form-control">
+                  <option value="asc">Ascending</option>
+                  <option value="desc">Descending</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Main Table Wrapper -->
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 40px; text-align: center;">
+                      <input type="checkbox" id="select-all-students">
+                    </th>
+                    <th>Profile</th>
+                    <th class="sortable" data-sort="name">Name <i class="fa-solid fa-sort"></i></th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Department</th>
+                    <th>Year</th>
+                    <th class="sortable" data-sort="created_at">Date Added <i class="fa-solid fa-sort"></i></th>
+                    <th style="text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="students-table-body">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination Bar -->
+            <div class="pagination-container">
+              <div class="pagination-info" id="pagination-summary">
+                Showing 0 to 0 of 0 students
+              </div>
+              <div class="pagination-controls">
+                <button class="page-btn" id="prev-page" aria-label="Previous page"><i class="fa-solid fa-chevron-left"></i></button>
+                <div id="page-numbers" style="display: flex; gap: 0.25rem;"></div>
+                <button class="page-btn" id="next-page" aria-label="Next page"><i class="fa-solid fa-chevron-right"></i></button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ==========================================
+             2.3 STUDENT FORM VIEW (Add/Edit Student)
+             ========================================== -->
+        <div id="page-add-student" class="page-view">
+          <div class="page-header">
+            <div class="page-title">
+              <h1 id="form-page-title">Add New Student</h1>
+              <p id="form-page-subtitle">Fill in the fields below to register a new student.</p>
+            </div>
+            <button class="btn btn-secondary" id="form-cancel-btn">
+              <i class="fa-solid fa-arrow-left"></i> Back to Directory
+            </button>
+          </div>
+
+          <div class="glass-panel form-card">
+            <form id="student-form" novalidate>
+              <input type="hidden" id="student-id-field">
+              
+              <div class="form-grid">
+                
+                <!-- Image Upload widget -->
+                <div class="form-group full-width">
+                  <label>Profile Image</label>
+                  <div class="image-upload-wrapper">
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150" class="image-preview" id="form-image-preview" alt="Preview">
+                    <div class="upload-actions">
+                      <button type="button" class="btn btn-secondary" id="trigger-file-select" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                        <i class="fa-solid fa-camera"></i> Choose Image
+                      </button>
+                      <input type="file" id="form-file-input" class="file-input" accept="image/*">
+                      <span style="font-size: 0.75rem; color: var(--text-secondary);">JPG, PNG, max 1MB.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="student-name">Full Name *</label>
+                  <input type="text" id="student-name" class="form-control" placeholder="Johnathan Doe" required>
+                  <div class="error-message" id="student-name-error"></div>
+                </div>
+
+                <div class="form-group">
+                  <label for="student-email">Email Address *</label>
+                  <input type="email" id="student-email" class="form-control" placeholder="johndoe@university.edu" required>
+                  <div class="error-message" id="student-email-error"></div>
+                </div>
+
+                <div class="form-group">
+                  <label for="student-phone">Phone Number *</label>
+                  <input type="tel" id="student-phone" class="form-control" placeholder="+1 (555) 123-4567" required>
+                  <div class="error-message" id="student-phone-error"></div>
+                </div>
+
+                <div class="form-group">
+                  <label for="student-dept">Department *</label>
+                  <select id="student-dept" class="form-control" required>
+                    <option value="">Select Department</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Information Technology">Information Technology</option>
+                    <option value="Electrical Engineering">Electrical Engineering</option>
+                    <option value="Mechanical Engineering">Mechanical Engineering</option>
+                    <option value="Civil Engineering">Civil Engineering</option>
+                    <option value="Business Administration">Business Administration</option>
+                  </select>
+                  <div class="error-message" id="student-dept-error"></div>
+                </div>
+
+                <div class="form-group">
+                  <label for="student-year">Academic Year *</label>
+                  <input type="number" id="student-year" class="form-control" placeholder="e.g. 1, 2, 3, 4" min="1" max="6" required>
+                  <div class="error-message" id="student-year-error"></div>
+                </div>
+
+              </div>
+
+              <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 2rem;">
+                <button type="button" class="btn btn-secondary" id="form-reset-btn">Reset</button>
+                <button type="submit" class="btn btn-primary" id="form-submit-btn">
+                  <span>Save Record</span> <i class="fa-solid fa-floppy-disk"></i>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             2.4 SETTINGS & PROFILE VIEW
+             ========================================== -->
+        <div id="page-settings" class="page-view">
+          <div class="page-header">
+            <div class="page-title">
+              <h1>Settings & Profile</h1>
+              <p>Manage your account configuration, preferences, and data imports.</p>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <!-- Left Side: User Profile -->
+            <div class="glass-panel" style="padding: 2rem;">
+              <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-user-gear" style="color: var(--primary);"></i> Profile Settings
+              </h2>
+              <form id="settings-profile-form" novalidate>
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                  <label>Email Address</label>
+                  <input type="email" id="profile-email-display" class="form-control" disabled>
+                  <span style="font-size: 0.75rem; color: var(--text-secondary);">Emails cannot be modified here.</span>
+                </div>
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                  <label for="settings-new-password">Change Password</label>
+                  <input type="password" id="settings-new-password" class="form-control" placeholder="Enter new password (min 6 chars)">
+                  <div class="error-message" id="settings-new-password-error"></div>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                  <span>Update Password</span> <i class="fa-solid fa-shield-halved"></i>
+                </button>
+              </form>
+            </div>
+
+            <!-- Right Side: Data Transfer & System settings -->
+            <div class="glass-panel" style="padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
+              <div>
+                <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                  <i class="fa-solid fa-file-csv" style="color: var(--success);"></i> Import & Export Data
+                </h2>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                  Import database records from a CSV file or back up your current roster to CSV.
+                </p>
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                  <button class="btn btn-secondary" id="export-csv-btn">
+                    <i class="fa-solid fa-file-export"></i> Export CSV
+                  </button>
+                  <button class="btn btn-primary" id="trigger-csv-import" style="background: var(--success); box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.25);">
+                    <i class="fa-solid fa-file-import"></i> Import CSV
+                  </button>
+                  <input type="file" id="csv-import-file" accept=".csv" style="display: none;">
+                </div>
+              </div>
+
+              <div style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                  <i class="fa-solid fa-database" style="color: var(--primary);"></i> Connection Config
+                </h2>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                  Current database credentials configured. Clear the settings to reconnect to a different instance.
+                </p>
+                <button class="btn btn-danger" id="clear-credentials-btn">
+                  <i class="fa-solid fa-link-slash"></i> Disconnect Database
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       3. MODALS & OVERLAYS
+       ==================================================================== -->
+  
+  <!-- Supabase Credentials Input Screen (Shown when credentials not configured) -->
+  <div class="modal-overlay" id="credentials-modal">
+    <div class="modal-content glass-panel setup-modal">
+      <div class="modal-header">
+        <h2 class="modal-title"><i class="fa-solid fa-database" style="color: var(--primary);"></i> Connect to Supabase</h2>
+      </div>
+      <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.25rem; line-height: 1.4;">
+        No database credentials detected. Fill in your project keys below to connect. 
+        You can find these in your Supabase Project Settings under <strong>API</strong>.
+      </p>
+      <form id="credentials-form" novalidate>
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <label for="setup-url">SUPABASE_URL *</label>
+          <input type="url" id="setup-url" class="form-control" placeholder="https://your-project.supabase.co" required>
+          <div class="error-message" id="setup-url-error"></div>
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label for="setup-key">SUPABASE_ANON_KEY *</label>
+          <input type="password" id="setup-key" class="form-control" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." required>
+          <div class="error-message" id="setup-key-error"></div>
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-primary">
+            <span>Connect & Launch</span> <i class="fa-solid fa-plug"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal-content glass-panel">
+      <div class="modal-header">
+        <h2 class="modal-title" style="color: var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i> Confirm Delete</h2>
+        <button class="modal-close" id="close-confirm-modal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p style="font-size: 0.95rem; line-height: 1.4;" id="confirm-modal-text">
+        Are you sure you want to permanently delete this student record? This action cannot be undone.
+      </p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="confirm-cancel">Cancel</button>
+        <button class="btn btn-danger" id="confirm-delete-btn">Delete Permanently</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Keyboard Shortcuts Help (Tooltip / Floating helper) -->
+  <div style="position: fixed; bottom: 1rem; left: 1rem; z-index: 100; font-size: 0.75rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 0.4rem 0.8rem; border-radius: 20px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.5rem; cursor: help;" title="Ctrl+N: Add Student | Ctrl+F: Search | Esc: Close Modals">
+    <i class="fa-solid fa-keyboard"></i> Shortcuts Available
+  </div>
+
+  <!-- ====================================================================
+       4. CLIENT SCRIPTS LOADING
+       ==================================================================== -->
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Config File (User created or fallback config.example.js) -->
+  <!-- We load config.js optionally. If it's missing, the browser will console log a 404, which is fine since we handle it gracefully inside supabase-client.js -->
+  <script src="config.js" onerror="console.log('No local config.js found; falling back to credentials modal or localStorage.')"></script>
+  
+  <!-- Application Logic Scripts -->
+  <script src="supabase-client.js"></script>
+  <script src="api.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
